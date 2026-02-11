@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Tenant App</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 50px; text-align: center; background-color: #f4f4f9; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: inline-block; min-width: 300px; }
+        .user-info { margin-top: 20px; text-align: left; background: #eee; padding: 15px; border-radius: 8px; font-family: monospace; }
+        .btn-logout { background-color: #d9534f; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 20px; }
+        #loading { font-style: italic; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Multi-Tenant Test Portal</h1>
+        <p id="status">Verifying authentication...</p>
+        
+        <div id="auth-content" style="display: none;">
+            <h3>Welcome, <span id="display-name">User</span>!</h3>
+            <p>You have successfully signed in to this tenant-restricted application.</p>
+            
+            <div class="user-info">
+                <strong>User ID:</strong> <span id="user-id"></span><br>
+                <strong>Provider:</strong> <span id="provider"></span><br>
+                <strong>Email/Login:</strong> <span id="user-details"></span>
+            </div>
+
+            <a href="/.auth/logout" class="btn-logout">Sign Out</a>
+        </div>
+        
+        <div id="loading">Please wait...</div>
+    </div>
+
+    <script>
+        async function checkAuth() {
+            try {
+                // SWA provides user info at this internal endpoint
+                const response = await fetch('/.auth/me');
+                const payload = await response.json();
+                const { clientPrincipal } = payload;
+
+                if (clientPrincipal) {
+                    // User is logged in, show the restricted content
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('status').innerText = "Access Granted";
+                    document.getElementById('auth-content').style.display = 'block';
+                    
+                    document.getElementById('display-name').innerText = clientPrincipal.userDetails.split('@')[0];
+                    document.getElementById('user-id').innerText = clientPrincipal.userId;
+                    document.getElementById('provider').innerText = clientPrincipal.identityProvider;
+                    document.getElementById('user-details').innerText = clientPrincipal.userDetails;
+                } else {
+                    // This block will rarely trigger if your config redirects 401s
+                    document.getElementById('status').innerText = "Not Authenticated";
+                    window.location.href = "/.auth/login/aad";
+                }
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                document.getElementById('status').innerText = "Error verifying identity.";
+            }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
