@@ -1,4 +1,21 @@
 {
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "auth": {
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "registration": {
+          "openIdIssuer": "https://login.microsoftonline.com/organizations/v2.0",
+          "clientIdSettingName": "AZURE_CLIENT_ID",
+          "clientSecretSettingName": "AZURE_CLIENT_SECRET"
+        },
+        "loginParameters": {
+          "scope": "openid profile email offline_access https://graph.microsoft.com/Calendars.Read"
+        }
+      }
+    }
+  },
   "routes": [
     {
       "route": "/*",
